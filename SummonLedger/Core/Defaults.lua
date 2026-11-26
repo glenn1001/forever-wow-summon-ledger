@@ -18,6 +18,9 @@ ns.SUMMON_SPELL_FALLBACK_NAME = "Ritual of Summoning"
 -- How long a sent summon counts as "on its way" before the Customer may be summoned again.
 ns.SUMMON_PENDING_SECONDS = 120
 
+-- A summon is delivered once the Customer is in the Stop's zone AND this close to the Summoner.
+ns.ARRIVAL_RANGE_YARDS = 30
+
 -- Account-wide settings (SummonLedgerDB.settings). Shared by every character of this player.
 ns.ACCOUNT_DEFAULTS = {
     minLevel = 14,

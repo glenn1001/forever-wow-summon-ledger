@@ -291,7 +291,24 @@ test("First Stop includes Customers already in Westfall, skips offline ones", fu
     local target, info = Rules.nextSummonTarget(roster, ctx(1, { joinSeq = { ["There-Realm"] = 1 } }))
     eq(target.name, "PaidThere-Realm", "paid Customer in Westfall goes first")
     eq(info.candidates, 2, "There and PaidThere; Off is offline, Further is past Westfall")
-    eq(info.atStop, 2)
+    eq(info.atStop, 0, "nobody within range")
+end)
+
+test("Range: within 30 yards in the Stop's zone needs no summon", function()
+    local roster = {
+        member(1, "Near", 1, "Westfall", { distance = 12 }),
+        member(2, "Far", 1, "Westfall", { distance = 400 }),
+        member(3, "Unmeasured", 1, "Westfall"),
+        member(4, "NearOtherZone", 1, "Elwynn Forest", { distance = 10 }),
+    }
+    local target, info = Rules.nextSummonTarget(roster, ctx(1, { joinSeq = { ["Far-Realm"] = 1, ["Unmeasured-Realm"] = 2, ["NearOtherZone-Realm"] = 3 } }))
+    eq(target.name, "Far-Realm")
+    eq(info.candidates, 3, "Near is already at the Summoner")
+    eq(info.atStop, 1)
+    eq(Rules.isAtSummoner(roster[1], stops[1]), true)
+    eq(Rules.isAtSummoner(roster[2], stops[1]), false)
+    eq(Rules.isAtSummoner(roster[3], stops[1]), false, "unmeasured distance is not at the Summoner")
+    eq(Rules.isAtSummoner(roster[4], stops[1]), false, "close but wrong zone")
 end)
 
 test("Later Stops: only paid Customers standing at the previous Stop", function()
@@ -304,7 +321,7 @@ test("Later Stops: only paid Customers standing at the previous Stop", function(
     local target, info = Rules.nextSummonTarget(roster, ctx(4))
     eq(target.name, "Ready-Realm")
     eq(info.candidates, 1)
-    eq(info.atStop, 1)
+    eq(info.atStop, 0, "Here is in Loch Modan but not measured near the Summoner")
 end)
 
 -- Messages and ledger -------------------------------------------------------------------

@@ -132,7 +132,8 @@ local function summonerBody()
     local lines = {
         ("My Stop: |cffffd100%s|r (%d of %d)"):format(stop and stop.name or "?", index, #ns.settings.stops),
         "Next: " .. (target and colorName(target.name, "00ff00") or "|cff888888nobody|r"),
-        ("Still to summon here: %d   Customers at this Stop: %d"):format(info.candidates, info.atStop),
+        ("Still to summon here: %d   Customers with me: %d"):format(info.candidates, info.atStop),
+        ("A summon counts as delivered within %d yards of you."):format(ns.ARRIVAL_RANGE_YARDS),
     }
     if index == 1 then
         lines[#lines + 1] = ("Free Paid-group slots: %d"):format(math.max(info.paidFree, 0))

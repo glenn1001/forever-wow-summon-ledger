@@ -122,7 +122,15 @@ function Api.readRoster()
             local name, rank, subgroup, level, _, _, zone, online = GetRaidRosterInfo(i)
             local full = name and Api.normalize(name)
             if full and not isSecret(subgroup) then
+                local distance
+                if UnitDistanceSquared then
+                    local squared, checked = UnitDistanceSquared("raid" .. i)
+                    if checked and squared and not isSecret(squared) and not isSecret(checked) then
+                        distance = math.sqrt(squared)
+                    end
+                end
                 roster[#roster + 1] = {
+                    distance = distance, -- yards from me; nil = couldn't be measured
                     index = i,
                     name = full,
                     rank = (not isSecret(rank) and rank) or 0,

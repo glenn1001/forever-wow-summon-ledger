@@ -46,8 +46,10 @@ function Summoner.update()
     local present = {}
     for _, m in ipairs(roster) do
         present[m.name] = true
+        -- Delivered only when they stand at me: in the Stop's zone and within range.
+        -- Otherwise the summon expires after SUMMON_PENDING_SECONDS and they're offered again.
         local entry = summoned[m.name]
-        if entry and not entry.arrived and Rules.zoneMatchesStop(m.zone, stop) then
+        if entry and not entry.arrived and Rules.isAtSummoner(m, stop) then
             entry.arrived = true
         end
     end

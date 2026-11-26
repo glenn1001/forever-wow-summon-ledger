@@ -44,6 +44,9 @@ Westfall. Its summon is free and open to every Customer in the Waiting and Paid 
 **Final Stop**
 Thoradin's Wall. Arriving there completes the Package.
 
+**Delivered summon**
+A summon counts as delivered once the Customer stands in the Stop's zone within 30 yards of the Summoner. A summon that isn't delivered within two minutes is offered again.
+
 **Batch**
 The Customers in the Paid groups, at most ten, who are summoned through all Stops together. The next Batch only starts once the previous one has arrived at the Final Stop.
 

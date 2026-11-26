@@ -84,6 +84,12 @@ function Rules.zoneMatchesStop(zone, stop)
     return inList(zone:lower(), zoneList(stop))
 end
 
+-- Is this member standing at the Summoner (in the Stop's zone and within range)?
+-- m.distance is nil when the game couldn't measure it (e.g. another continent): not at the Summoner.
+function Rules.isAtSummoner(m, stop)
+    return Rules.zoneMatchesStop(m.zone, stop) and m.distance ~= nil and m.distance <= ns.ARRIVAL_RANGE_YARDS
+end
+
 -- Index of the Stop whose zone this is, or nil.
 function Rules.stopIndexOfZone(zone, stops)
     for i, stop in ipairs(stops) do
@@ -245,13 +251,14 @@ function Rules.nextSummonTarget(roster, ctx)
     end
 
     for _, m in ipairs(roster) do
-        if (Rules.isWaitingGroup(m.subgroup) or Rules.isPaidGroup(m.subgroup)) and Rules.zoneMatchesStop(m.zone, stop) then
+        if (Rules.isWaitingGroup(m.subgroup) or Rules.isPaidGroup(m.subgroup)) and Rules.isAtSummoner(m, stop) then
             info.atStop = info.atStop + 1
         end
     end
 
+    -- Already standing at the Summoner: needs no summon here.
     local function eligible(m)
-        return m.online and not summonActive(ctx.summoned[m.name], now)
+        return m.online and not summonActive(ctx.summoned[m.name], now) and not Rules.isAtSummoner(m, stop)
     end
 
     local candidates = {}

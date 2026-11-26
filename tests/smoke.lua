@@ -183,6 +183,13 @@ local function setupGlobals()
         W.members[index].subgroup = group
     end
     _G.GetTargetTradeMoney = function() return W.tradeMoney end
+    _G.UnitDistanceSquared = function(unit)
+        local m = W.members[tonumber(unit:match("raid(%d+)"))]
+        if m and m.distance then
+            return m.distance * m.distance, true
+        end
+        return 0, false
+    end
     _G.C_PartyInfo = {
         InviteUnit = function(name) table.insert(W.invites, name) end,
         UninviteUnit = function(name) table.insert(W.uninvites, name) end,
@@ -508,12 +515,28 @@ do
     check(button:GetAttribute("macrotext") == "/target Pre\n/cast Ritual of Summoning", "advance payer summoned first")
     W.target = "Pre"
     fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
+    memberByName("Pre").zone = "Westfall"
+    memberByName("Pre").distance = 5
+    advance(2.5)
     button.scripts.PreClick(button)
     check(button:GetAttribute("macrotext") == "/target B\n/cast Ritual of Summoning", "then group 1 before group 2 (snapshot order)")
     W.target = "B"
     fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
     memberByName("B").zone = "Westfall"
+    memberByName("B").distance = 250 -- in Westfall, but not at the Summoner
     advance(2.5)
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target A\n/cast Ritual of Summoning", "B's summon still pending, A next")
+    advance(125)
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target B\n/cast Ritual of Summoning", "B not delivered (out of range): offered again after the pending time")
+    W.target = "B"
+    fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
+    memberByName("B").distance = 8
+    advance(2.5)
+    advance(125)
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target A\n/cast Ritual of Summoning", "B delivered within 30 yards: not offered again")
 
     trade("B", 10000)
     advance(1)
@@ -523,8 +546,6 @@ do
     trade("Adv", 500)
     check(lastWhisperTo("Adv") == nil, "no payment whispers to Staff")
 
-    button.scripts.PreClick(button)
-    check(button:GetAttribute("macrotext") == "/target A\n/cast Ritual of Summoning", "then A")
 end
 
 -- ===================================================================================
