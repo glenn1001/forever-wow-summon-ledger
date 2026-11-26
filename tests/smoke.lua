@@ -537,6 +537,21 @@ do
     advance(125)
     button.scripts.PreClick(button)
     check(button:GetAttribute("macrotext") == "/target A\n/cast Ritual of Summoning", "B delivered within 30 yards: not offered again")
+    memberByName("B").distance = 500 -- walks off to do the quest step
+    advance(130)
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target A\n/cast Ritual of Summoning", "B walked away: still delivered")
+
+    -- Walked up to the Summoner without a summon: counts as delivered too, also after leaving.
+    table.insert(W.members, { name = "Walker", subgroup = 1, level = 20, zone = "Westfall", online = true, rank = 0, distance = 10 })
+    fire("GROUP_ROSTER_UPDATE")
+    advance(2.5)
+    memberByName("Walker").distance = 600
+    advance(2.5)
+    local _, info = ns.Summoner.status()
+    check(info.delivered >= 3, "Walker counted as delivered (Pre, B, Walker)")
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target A\n/cast Ritual of Summoning", "Walker not offered after walking away")
 
     trade("B", 10000)
     advance(1)

@@ -46,11 +46,16 @@ function Summoner.update()
     local present = {}
     for _, m in ipairs(roster) do
         present[m.name] = true
-        -- Delivered only when they stand at me: in the Stop's zone and within range.
-        -- Otherwise the summon expires after SUMMON_PENDING_SECONDS and they're offered again.
-        local entry = summoned[m.name]
-        if entry and not entry.arrived and Rules.isAtSummoner(m, stop) then
-            entry.arrived = true
+        -- Delivered once they've stood at me (Stop's zone, within range), summoned or not. That sticks:
+        -- they walk off to do the quest step. A summon that never gets here expires after
+        -- SUMMON_PENDING_SECONDS and they're offered again.
+        if (Rules.isWaitingGroup(m.subgroup) or Rules.isPaidGroup(m.subgroup)) and Rules.isAtSummoner(m, stop) then
+            local entry = summoned[m.name]
+            if entry then
+                entry.arrived = true
+            else
+                summoned[m.name] = { time = Api.now(), arrived = true }
+            end
         end
     end
     for name in pairs(summoned) do

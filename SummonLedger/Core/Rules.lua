@@ -241,24 +241,25 @@ end
 
 -- Who should this Summoner summon next?
 -- ctx = { stopIndex, stops, summoned = name -> { time, arrived }, joinSeq, now }
--- Returns the member (or nil) and info { candidates, paidFree, atStop }.
+-- summoned[name].arrived is sticky: once a Customer has been with me, walking away doesn't undo it.
+-- Returns the member (or nil) and info { candidates, paidFree, delivered }.
 function Rules.nextSummonTarget(roster, ctx)
     local stops, stopIndex, now = ctx.stops, ctx.stopIndex, ctx.now
     local stop = stops[stopIndex]
-    local info = { candidates = 0, paidFree = 0, atStop = 0 }
+    local info = { candidates = 0, paidFree = 0, delivered = 0 }
     if not stop then
         return nil, info
     end
 
     for _, m in ipairs(roster) do
-        if (Rules.isWaitingGroup(m.subgroup) or Rules.isPaidGroup(m.subgroup)) and Rules.isAtSummoner(m, stop) then
-            info.atStop = info.atStop + 1
+        local entry = ctx.summoned[m.name]
+        if (Rules.isWaitingGroup(m.subgroup) or Rules.isPaidGroup(m.subgroup)) and entry and entry.arrived then
+            info.delivered = info.delivered + 1
         end
     end
 
-    -- Already standing at the Summoner: needs no summon here.
     local function eligible(m)
-        return m.online and not summonActive(ctx.summoned[m.name], now) and not Rules.isAtSummoner(m, stop)
+        return m.online and not summonActive(ctx.summoned[m.name], now)
     end
 
     local candidates = {}
