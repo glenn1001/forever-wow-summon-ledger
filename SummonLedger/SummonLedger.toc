@@ -1,0 +1,21 @@
+## Interface: 16001
+## Title: SummonLedger
+## Notes: Summoning service for the Cozy Sleeping Bag chain: auto-invites, raid groups, payments and a gold ledger.
+## Author: Glenn Blom
+## Version: 0.1.0
+## SavedVariables: SummonLedgerDB
+## SavedVariablesPerCharacter: SummonLedgerCharDB
+
+Core\Util.lua
+Core\Defaults.lua
+Core\Rules.lua
+Core\Api.lua
+Core\Addon.lua
+Features\Trade.lua
+Features\Ledger.lua
+Features\Advertiser.lua
+Features\Summoner.lua
+UI\Panel.lua
+UI\Options.lua
+UI\Export.lua
+Main.lua
