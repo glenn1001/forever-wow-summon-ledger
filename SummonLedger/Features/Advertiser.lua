@@ -209,25 +209,36 @@ local function checkLevel(m)
     end
 end
 
-local function handleArrival(arrival)
-    local m = arrival.member
-    if Advertiser.isStaff(m.name) or Rules.isStaffGroup(m.subgroup) or removing[m.name] then
+-- An unpaid Customer in Westfall counts as arrived at the First Stop, whether summoned there or
+-- already in the zone when they joined: they get the pay reminder once.
+local function remindUnpaidInFirstStop(roster)
+    local summoner = Advertiser.firstStopSummoner()
+    if not summoner then
         return
     end
-    local stops = ns.settings.stops
-    if arrival.stopIndex == 1 and Rules.isWaitingGroup(m.subgroup) then
-        local summoner = Advertiser.firstStopSummoner()
-        if not state().reminded[m.name] and summoner then
+    local firstStop = ns.settings.stops[1]
+    for _, m in ipairs(roster) do
+        if Rules.isWaitingGroup(m.subgroup) and m.online and Rules.zoneMatchesStop(m.zone, firstStop)
+            and not Advertiser.isStaff(m.name) and not isPaid(m.name) and not removing[m.name]
+            and levelChecked[m.name] and not state().reminded[m.name] then
             state().reminded[m.name] = true
             Api.whisper(m.name, Util.fill(ns.settings.texts.payReminder, {
                 price = Util.formatMoney(ns.settings.minPayment),
                 summoner = Api.displayName(summoner),
             }))
+            if not state().announced then
+                Advertiser.announcePayment()
+            end
         end
-        if not state().announced and summoner then
-            Advertiser.announcePayment()
-        end
-    elseif arrival.stopIndex == #stops and Rules.isPaidGroup(m.subgroup) then
+    end
+end
+
+local function handleArrival(arrival)
+    local m = arrival.member
+    if Advertiser.isStaff(m.name) or Rules.isStaffGroup(m.subgroup) or removing[m.name] then
+        return
+    end
+    if arrival.stopIndex == #ns.settings.stops and Rules.isPaidGroup(m.subgroup) then
         removing[m.name] = true
         state().paid[m.name] = nil
         Api.whisper(m.name, ns.settings.texts.thanks)
@@ -322,6 +333,7 @@ function Advertiser.update()
     for _, arrival in ipairs(Rules.detectArrivals(prevZones, roster, ns.settings.stops)) do
         handleArrival(arrival)
     end
+    remindUnpaidInFirstStop(roster)
 
     -- A Batch is over once the Paid groups have emptied again; the next one gets a new raid warning.
     local paidCount = Rules.countInGroups(roster, ns.PAID_GROUPS, function(m)

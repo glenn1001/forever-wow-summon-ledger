@@ -426,6 +426,14 @@ do
     advance(2.5)
     check(ns.shiftState().paid["Cust2-" .. REALM], "move by another Staff member counts as paid")
 
+    -- Joining while already in Westfall counts as arrived: pay reminder straight away.
+    leave("Cust10")
+    whisperFrom("Westy", "summon")
+    join("Westy", 20, "Westfall")
+    advance(3)
+    check(lastWhisperTo("Westy") and lastWhisperTo("Westy"):find("trade 1g to Lock"), "pay reminder for a Customer already in Westfall")
+    check(#W.raidWarnings == 1, "still one raid warning for the Batch")
+
     -- A spot opened in groups 1-2: invite next from the waitlist.
     SlashCmdList.SUMMONLEDGER("next")
     check(contains(W.invites, "Cust11-" .. REALM), "waitlist invite")

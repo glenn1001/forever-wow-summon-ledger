@@ -281,14 +281,17 @@ test("First Stop: Waiting groups only while Paid groups have room", function()
     eq(target.name, "W1-Realm", "expired summon frees the slot again")
 end)
 
-test("First Stop skips Customers already standing in Westfall and offline ones", function()
+test("First Stop includes Customers already in Westfall, skips offline ones", function()
     local roster = {
         member(1, "There", 1, "Westfall"),
         member(2, "Off", 1, "Elwynn Forest", { online = false }),
+        member(3, "PaidThere", 3, "Westfall"),
+        member(4, "Further", 3, "The Barrens"),
     }
-    local target, info = Rules.nextSummonTarget(roster, ctx(1))
-    eq(target, nil)
-    eq(info.atStop, 1)
+    local target, info = Rules.nextSummonTarget(roster, ctx(1, { joinSeq = { ["There-Realm"] = 1 } }))
+    eq(target.name, "PaidThere-Realm", "paid Customer in Westfall goes first")
+    eq(info.candidates, 2, "There and PaidThere; Off is offline, Further is past Westfall")
+    eq(info.atStop, 2)
 end)
 
 test("Later Stops: only paid Customers standing at the previous Stop", function()

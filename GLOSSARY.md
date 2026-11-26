@@ -39,7 +39,7 @@ _Avoid_: single summon
 A location on the chain where Customers are summoned to. In order: Westfall, The Barrens, Stonetalon Mountains, Loch Modan, Thoradin's Wall.
 
 **First Stop**
-Westfall. The first summon, after which unpaid Customers pay its Summoner.
+Westfall. Its summon is free and open to every Customer in the Waiting and Paid groups, including those already somewhere in Westfall. A Customer in Westfall who hasn't paid has arrived, and pays its Summoner. Every later summon needs the Package paid.
 
 **Final Stop**
 Thoradin's Wall. Arriving there completes the Package.

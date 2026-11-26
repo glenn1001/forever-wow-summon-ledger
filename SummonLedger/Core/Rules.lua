@@ -251,14 +251,17 @@ function Rules.nextSummonTarget(roster, ctx)
     end
 
     local function eligible(m)
-        return m.online and not summonActive(ctx.summoned[m.name], now) and not Rules.zoneMatchesStop(m.zone, stop)
+        return m.online and not summonActive(ctx.summoned[m.name], now)
     end
 
     local candidates = {}
     if stopIndex == 1 then
-        -- Paid in advance and not on the chain yet (not standing at any Stop) go first.
+        -- The First Stop summon is free: groups 1-4 qualify, even Customers already somewhere in
+        -- Westfall (they may be far from the start). Paid in advance goes first, except Customers
+        -- already further along the chain (standing at a later Stop).
         for _, m in ipairs(roster) do
-            if Rules.isPaidGroup(m.subgroup) and eligible(m) and not Rules.stopIndexOfZone(m.zone, stops) then
+            local at = Rules.stopIndexOfZone(m.zone, stops)
+            if Rules.isPaidGroup(m.subgroup) and eligible(m) and (at == nil or at == 1) then
                 candidates[#candidates + 1] = m
             end
         end
@@ -288,6 +291,7 @@ function Rules.nextSummonTarget(roster, ctx)
             candidates[#candidates + 1] = waiting[i]
         end
     else
+        -- Every later summon needs the Package paid: groups 3-4 only.
         local previous = stops[stopIndex - 1]
         for _, m in ipairs(roster) do
             if Rules.isPaidGroup(m.subgroup) and eligible(m) and Rules.zoneMatchesStop(m.zone, previous) then
