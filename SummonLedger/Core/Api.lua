@@ -174,6 +174,21 @@ function Api.summonSpellName()
     return name or ns.SUMMON_SPELL_FALLBACK_NAME
 end
 
+-- How many Ritual of Summoning casts my reagents allow: the number the action bar shows.
+-- nil = unknown (secret during restricted encounters, or no API).
+function Api.summonsLeft()
+    local count
+    if C_Spell and C_Spell.GetSpellCastCount then
+        count = C_Spell.GetSpellCastCount(Api.summonSpellName())
+    elseif C_Item and C_Item.GetItemCount then
+        count = C_Item.GetItemCount(ns.SOUL_SHARD_ITEM_ID)
+    end
+    if count == nil or isSecret(count) then
+        return nil
+    end
+    return count
+end
+
 function Api.dateString(t)
     return date("%Y-%m-%d %H:%M:%S", t or time())
 end

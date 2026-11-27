@@ -213,9 +213,13 @@ local function setupGlobals()
             end
         end,
     }
+    W.shards = 5
     _G.C_Spell = {
         GetSpellName = function(id)
             return id == 698 and "Ritual of Summoning" or "Other"
+        end,
+        GetSpellCastCount = function(spell)
+            return spell == "Ritual of Summoning" and W.shards or 0
         end,
     }
 end
@@ -591,6 +595,23 @@ do
     advance(130)
     button.scripts.PreClick(button)
     check(lastWhisperTo("Ready") == "Summoning you to Loch Modan!", "Stop message with placeholder")
+
+    -- Summons left = Ritual of Summoning cast count (Soul Shards).
+    W.shards = 4
+    fire("BAG_UPDATE_DELAYED")
+    advance(1)
+    check(button:GetText() == "Summon next (4)", "button shows summons left")
+    check(ns.Summoner.summonsLeft() == 4, "summons left tracked")
+    local printedBefore = #W.printed
+    W.shards = 3
+    fire("BAG_UPDATE_DELAYED")
+    advance(1)
+    check(W.printed[#W.printed]:find("Only 3 summon"), "low-shard warning")
+    W.shards = 0
+    fire("BAG_UPDATE_DELAYED")
+    advance(1)
+    check(W.printed[#W.printed]:find("out of Soul Shards"), "out-of-shards warning")
+    check(#W.printed > printedBefore, "warnings printed")
 
     -- Settings show only what this role uses.
     local function shown(key)

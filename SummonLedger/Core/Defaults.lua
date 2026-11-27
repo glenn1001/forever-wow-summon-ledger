@@ -15,6 +15,11 @@ ns.ROLE_LABELS = { none = "Not set", advertiser = "Advertiser", summoner = "Summ
 ns.SUMMON_SPELL_ID = 698
 ns.SUMMON_SPELL_FALLBACK_NAME = "Ritual of Summoning"
 
+-- Soul Shard, Ritual of Summoning's reagent. Used only if the cast-count API is missing.
+ns.SOUL_SHARD_ITEM_ID = 6265
+-- Warn the Summoner when this few summons are left.
+ns.LOW_SUMMONS_WARNING = 3
+
 -- How long a sent summon counts as "on its way" before the Customer may be summoned again.
 ns.SUMMON_PENDING_SECONDS = 120
 

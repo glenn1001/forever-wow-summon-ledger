@@ -132,6 +132,17 @@ local function summonerBody()
     local lines = {
         ("My Stop: |cffffd100%s|r (%d of %d)"):format(stop and stop.name or "?", index, #ns.settings.stops),
         "Next: " .. (target and colorName(target.name, "00ff00") or "|cff888888nobody|r"),
+        "Summons left: " .. (function()
+            local left = ns.Summoner.summonsLeft()
+            if left == nil then
+                return "|cff888888unknown|r"
+            elseif left == 0 then
+                return "|cffff40400 - out of Soul Shards|r"
+            elseif left <= ns.LOW_SUMMONS_WARNING then
+                return "|cffff8000" .. left .. "|r"
+            end
+            return tostring(left)
+        end)(),
         ("Still to summon here: %d   Delivered: %d"):format(info.candidates, info.delivered),
         ("Delivered = has been within %d yards of you here (walking away afterwards is fine)."):format(ns.ARRIVAL_RANGE_YARDS),
     }

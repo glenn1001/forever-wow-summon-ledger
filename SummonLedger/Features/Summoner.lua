@@ -156,6 +156,40 @@ C_Timer.NewTicker(2, function()
     end
 end)
 
+-- Summons left (Soul Shards) ---------------------------------------------------------------
+
+local lastSummonsLeft = nil
+
+function Summoner.summonsLeft()
+    return lastSummonsLeft
+end
+
+function Summoner.updateSummonsLeft()
+    if ns.role() ~= "summoner" then
+        return
+    end
+    local left = Api.summonsLeft()
+    button:SetText(left and ("Summon next (" .. left .. ")") or "Summon next")
+    if left and lastSummonsLeft and left < lastSummonsLeft and ns.shiftOn() then
+        if left == 0 then
+            ns.print("|cffff4040No summons left: you're out of Soul Shards!|r")
+        elseif left <= ns.LOW_SUMMONS_WARNING then
+            ns.print(("|cffff8000Only %d summon(s) left.|r"):format(left))
+        end
+    end
+    lastSummonsLeft = left
+    ns.fire("SL_UI_REFRESH")
+end
+
+local function scheduleShardUpdate()
+    ns.debounce("shards", 0.2, Summoner.updateSummonsLeft)
+end
+ns.on("BAG_UPDATE_DELAYED", scheduleShardUpdate)
+ns.on("SPELL_UPDATE_USES", scheduleShardUpdate)
+ns.on("PLAYER_ENTERING_WORLD", scheduleShardUpdate)
+ns.on("SL_SETTINGS_CHANGED", scheduleShardUpdate)
+ns.on("SL_SHIFT_CHANGED", scheduleShardUpdate)
+
 -- Check-in ------------------------------------------------------------------------------
 
 function Summoner.reportForDuty()
