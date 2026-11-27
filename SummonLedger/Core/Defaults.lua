@@ -29,12 +29,23 @@ ns.ACCOUNT_DEFAULTS = {
     keywords = "summon, summons, sum, inv, invite, bag, sleeping, cozy",
     autoInviteWaitlist = false,
     inviteTimeout = 60,
+    -- summonText: whispered by the Summoner on "Summon next" (empty = no whisper).
+    -- summonTextPaid (First Stop only): used instead for Customers who already paid.
     stops = {
-        { name = "Westfall", zones = "Westfall" },
-        { name = "Barrens", zones = "The Barrens" },
-        { name = "Stonetalon", zones = "Stonetalon Mountains" },
-        { name = "Loch Modan", zones = "Loch Modan" },
-        { name = "Thoradin's Wall", zones = "Arathi Highlands, Hillsbrad Foothills" },
+        {
+            name = "Westfall",
+            zones = "Westfall",
+            summonText = "Summoning you to Westfall, please accept! After the summon, trade {price} to {summoner}, then follow the raid markers to complete the quest.",
+            summonTextPaid = "Summoning you to Westfall, please accept! Then follow the raid markers to complete the quest.",
+        },
+        { name = "Barrens", zones = "The Barrens", summonText = "" },
+        {
+            name = "Stonetalon",
+            zones = "Stonetalon Mountains",
+            summonText = "Summoning you to Stonetalon, please accept! The quest here has 2 parts: follow the raid markers for both.",
+        },
+        { name = "Loch Modan", zones = "Loch Modan", summonText = "" },
+        { name = "Thoradin's Wall", zones = "Arathi Highlands, Hillsbrad Foothills", summonText = "" },
     },
     texts = {
         autoReply = "Hi! We summon you through the whole Cozy Sleeping Bag chain: Westfall, Barrens, Stonetalon, Loch Modan and Thoradin's Wall. Accept the raid invite and stay online. Pay after your first summon to Westfall (or trade me now), then accept every summon.",
@@ -57,16 +68,16 @@ ns.CHARACTER_DEFAULTS = {
     advertiser = "",
 }
 
--- Placeholders shown next to each text in the settings.
+-- Placeholders shown next to each text in the settings; `use` = who needs it ("payment" = takes payments).
 ns.TEXT_INFO = {
-    { key = "autoReply", label = "Auto-reply to requests", vars = "" },
-    { key = "tooLow", label = "Below minimum level", vars = "{minLevel}" },
-    { key = "waitlist", label = "Put on waitlist", vars = "{position}" },
-    { key = "spotOpen", label = "Invited from waitlist", vars = "" },
-    { key = "paid", label = "Payment received", vars = "{amount}" },
-    { key = "underpaid", label = "Payment too low", vars = "{amount} {remaining}" },
-    { key = "payReminder", label = "Unpaid arrival in Westfall", vars = "{price} {summoner}" },
-    { key = "raidWarning", label = "Raid warning: who to pay", vars = "{summoner}" },
-    { key = "thanks", label = "Final Stop reached", vars = "" },
-    { key = "checkin", label = "Staff check-in whisper", vars = "{stop} {role}" },
+    { key = "autoReply", label = "Auto-reply to requests", vars = "", use = "advertiser" },
+    { key = "tooLow", label = "Below minimum level", vars = "{minLevel}", use = "advertiser" },
+    { key = "waitlist", label = "Put on waitlist", vars = "{position}", use = "advertiser" },
+    { key = "spotOpen", label = "Invited from waitlist", vars = "", use = "advertiser" },
+    { key = "paid", label = "Payment received", vars = "{amount}", use = "payment" },
+    { key = "underpaid", label = "Payment too low", vars = "{amount} {remaining}", use = "payment" },
+    { key = "payReminder", label = "Unpaid arrival in Westfall", vars = "{price} {summoner}", use = "advertiser" },
+    { key = "raidWarning", label = "Raid warning: who to pay", vars = "{summoner}", use = "advertiser" },
+    { key = "thanks", label = "Final Stop reached", vars = "", use = "advertiser" },
+    { key = "checkin", label = "Staff check-in whisper", vars = "{stop} {role}", use = "staff" },
 }

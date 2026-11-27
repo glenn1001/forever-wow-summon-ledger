@@ -22,6 +22,8 @@ Changes to the files then show up in game after `/reload`. Every Staff member ne
 - **Advertiser's character name**: Summoners and Helpers whisper their check-in to this name.
 - Advertiser and Westfall Summoner: set the **Minimum payment**.
 - Advertiser: invite mode (anyone or keywords), keywords, whisper texts.
+- Summoner: a whisper per Stop, sent to the Customer on "Summon next" (empty = none). Westfall has a second text for Customers who already paid.
+- The page only shows the settings for this character's role. With no role chosen, only the role selector is shown.
 - Key Bindings > AddOns: bind **Summon next customer** (Summoners) and **Invite next from the waitlist** (Advertiser).
 
 ## Running a Shift

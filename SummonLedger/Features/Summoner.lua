@@ -13,6 +13,8 @@ local nextSeq = 1
 local summoned = {} -- name -> { time, arrived }
 local lastInfo = { candidates = 0, paidFree = 0, atStop = 0 }
 local lastTarget = nil
+local whispered = {} -- name -> time of the last summon whisper (a key press fires PreClick twice)
+local SUMMON_WHISPER_COOLDOWN = 30
 
 local function active()
     return ns.shiftOn() and ns.role() == "summoner"
@@ -67,6 +69,32 @@ function Summoner.update()
     ns.fire("SL_UI_REFRESH")
 end
 
+-- Whisper the Stop's summon message to the Customer being summoned. Empty message = no whisper.
+function Summoner.whisperSummonText(target)
+    local stop, index = ns.myStop()
+    if not stop or not target then
+        return
+    end
+    local text = stop.summonText
+    if index == 1 and Rules.isPaidGroup(target.subgroup) then
+        text = stop.summonTextPaid
+    end
+    if Util.trim(text) == "" then
+        return
+    end
+    local now = Api.now()
+    if whispered[target.name] and now - whispered[target.name] < SUMMON_WHISPER_COOLDOWN then
+        return
+    end
+    whispered[target.name] = now
+    local price = (ns.settings.minPayment or 0) > 0 and Util.formatMoney(ns.settings.minPayment) or "the price"
+    Api.whisper(target.name, Util.fill(text, {
+        price = price,
+        summoner = Api.displayName(Api.playerName()),
+        stop = stop.name,
+    }))
+end
+
 -- The secure button. Its macro is rewritten right before each click (allowed outside combat).
 local button = CreateFrame("Button", "SummonLedgerSummonButton", UIParent, "SecureActionButtonTemplate,UIPanelButtonTemplate")
 button:SetSize(150, 26)
@@ -93,6 +121,7 @@ button:SetScript("PreClick", function(self)
         return
     end
     self:SetAttribute("macrotext", "/target " .. Api.displayName(target.name) .. "\n/cast " .. Api.summonSpellName())
+    Summoner.whisperSummonText(target)
 end)
 
 local function onSummonCast(unit, _, spellID)

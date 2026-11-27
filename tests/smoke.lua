@@ -513,6 +513,10 @@ do
     local button = _G.SummonLedgerSummonButton
     button.scripts.PreClick(button)
     check(button:GetAttribute("macrotext") == "/target Pre\n/cast Ritual of Summoning", "advance payer summoned first")
+    check(lastWhisperTo("Pre") == ns.settings.stops[1].summonTextPaid, "paid Customer gets the Westfall 'already paid' whisper")
+    local whisperCount = #W.whispers
+    button.scripts.PreClick(button) -- key down + key up both fire PreClick
+    check(#W.whispers == whisperCount, "no duplicate summon whisper")
     W.target = "Pre"
     fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
     memberByName("Pre").zone = "Westfall"
@@ -520,6 +524,7 @@ do
     advance(2.5)
     button.scripts.PreClick(button)
     check(button:GetAttribute("macrotext") == "/target B\n/cast Ritual of Summoning", "then group 1 before group 2 (snapshot order)")
+    check(lastWhisperTo("B") and lastWhisperTo("B"):find("trade 1g to Lock, then follow the raid markers"), "unpaid Customer told to pay the Summoner")
     W.target = "B"
     fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
     memberByName("B").zone = "Westfall"
@@ -581,6 +586,34 @@ do
     local button = _G.SummonLedgerSummonButton
     button.scripts.PreClick(button)
     check(button:GetAttribute("macrotext") == "/target Ready\n/cast Ritual of Summoning", "Loch Modan summons the paid Customer from Stonetalon")
+    check(lastWhisperTo("Ready") == nil, "empty Stop message: no whisper")
+    ns.settings.stops[4].summonText = "Summoning you to {stop}!"
+    advance(130)
+    button.scripts.PreClick(button)
+    check(lastWhisperTo("Ready") == "Summoning you to Loch Modan!", "Stop message with placeholder")
+
+    -- Settings show only what this role uses.
+    local function shown(key)
+        for _, k in ipairs(ns.Options.visibleKeys()) do
+            if k == key then
+                return true
+            end
+        end
+        return false
+    end
+    ns.char.role = "none"
+    check(shown("role") and shown("noRole") and not shown("minLevel") and not shown("advertiserName") and #ns.Options.visibleKeys() == 3, "no role: only the role selector")
+    ns.char.role = "advertiser"
+    check(shown("minLevel") and shown("minPayment") and shown("text:autoReply") and shown("zones:1"), "advertiser settings")
+    check(not shown("advertiserName") and not shown("summonText:1") and not shown("stop"), "advertiser: no Summoner settings")
+    ns.char.role = "summoner"
+    ns.char.stop = 4
+    check(shown("advertiserName") and shown("summonText:3") and shown("zones:1") and shown("text:checkin"), "summoner settings")
+    check(not shown("minLevel") and not shown("minPayment") and not shown("text:autoReply"), "summoner (not Westfall): no minimum level or payment")
+    ns.char.stop = 1
+    check(shown("minPayment") and shown("text:paid"), "Westfall Summoner sets the minimum payment")
+    ns.char.role = "helper"
+    check(shown("advertiserName") and shown("stop") and not shown("summonText:1") and not shown("zones:1") and not shown("minPayment"), "helper settings")
 end
 
 -- ===================================================================================
