@@ -17,8 +17,7 @@ local function readMoney()
 end
 
 ns.on("TRADE_SHOW", function()
-    local name, realm = UnitName("NPC")
-    trade = { partner = Api.normalize(name, realm), copper = 0, done = false }
+    trade = { partner = Api.unitName("NPC"), copper = 0, done = false }
 end)
 
 ns.on("TRADE_MONEY_CHANGED", readMoney)
