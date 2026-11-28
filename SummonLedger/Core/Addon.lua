@@ -77,6 +77,14 @@ ns.on("ADDON_LOADED", function(name)
     ns.db = db
     ns.settings = db.settings
     ns.char = Util.mergeDefaults(SummonLedgerCharDB, ns.CHARACTER_DEFAULTS)
+    -- 0.1.x kept the Advertiser's name per character: the first character that logs in moves it
+    -- to the account-wide settings, every character drops its own copy.
+    if ns.char.advertiser ~= nil then
+        if Util.trim(db.settings.advertiser) == "" and Util.trim(ns.char.advertiser) ~= "" then
+            db.settings.advertiser = Util.trim(ns.char.advertiser)
+        end
+        ns.char.advertiser = nil
+    end
     ns.fire("SL_LOADED")
 end)
 

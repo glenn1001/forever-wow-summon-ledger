@@ -682,7 +682,7 @@ do
     W.members = { W.members[1] }
     ns.char.role = "helper"
     ns.char.stop = 2
-    ns.char.advertiser = "Adv"
+    ns.settings.advertiser = "Adv"
     ns.db.shift.on = true
     fire("PLAYER_ENTERING_WORLD", true, false)
     advance(6)
@@ -743,6 +743,53 @@ do
     advance(1)
     local g = memberByName("Ilsirdur Bank").subgroup
     check(g == 3 or g == 4, "Forever: paying the Westfall Summoner moves the Customer to groups 3-4 (group " .. g .. ")")
+end
+
+-- ===================================================================================
+-- Issue #6: account-wide settings, only role and Stop per character
+-- ===================================================================================
+do
+    -- An Advertiser name saved per character by 0.1.x moves to the account settings.
+    setupGlobals()
+    W.members[1] = { name = "Helpy", subgroup = 1, level = 60, zone = "Westfall", online = true, rank = 0 }
+    _G.SummonLedgerDB = { settings = { minLevel = 20, texts = { paid = "custom paid" } } }
+    _G.SummonLedgerCharDB = { role = "helper", stop = 2, advertiser = " Adv " }
+    local ns = {}
+    local toc = io.open("SummonLedger/SummonLedger.toc"):read("*a")
+    for file in toc:gmatch("[^\r\n]+") do
+        if not file:find("^##") and file:find("%.lua$") then
+            assert(loadfile("SummonLedger/" .. file:gsub("\\", "/")))("SummonLedger", ns)
+        end
+    end
+    fire("ADDON_LOADED", "SummonLedger")
+    check(SummonLedgerDB.settings.advertiser == "Adv", "#6: Advertiser name migrated to the account")
+    check(SummonLedgerCharDB.advertiser == nil, "#6: per-character Advertiser name removed")
+    check(SummonLedgerDB.settings.minLevel == 20 and SummonLedgerDB.settings.texts.paid == "custom paid", "#6: existing account settings kept")
+    local keys = {}
+    for k in pairs(SummonLedgerCharDB) do
+        keys[#keys + 1] = k
+    end
+    table.sort(keys)
+    check(table.concat(keys, ",") == "role,stop", "#6: only role and Stop per character (got " .. table.concat(keys, ",") .. ")")
+
+    -- A second character on the same account: shares the settings, keeps its own role/Stop,
+    -- and an account Advertiser name isn't overwritten by an older per-character one.
+    local accountDB = SummonLedgerDB
+    setupGlobals()
+    W.members[1] = { name = "Locky", subgroup = 1, level = 60, zone = "Westfall", online = true, rank = 0 }
+    _G.SummonLedgerDB = accountDB
+    _G.SummonLedgerCharDB = { role = "summoner", stop = 1, advertiser = "Old Name" }
+    ns = {}
+    for file in toc:gmatch("[^\r\n]+") do
+        if not file:find("^##") and file:find("%.lua$") then
+            assert(loadfile("SummonLedger/" .. file:gsub("\\", "/")))("SummonLedger", ns)
+        end
+    end
+    fire("ADDON_LOADED", "SummonLedger")
+    check(ns.settings.advertiser == "Adv", "#6: account Advertiser name wins over an old per-character one")
+    check(ns.char.role == "summoner" and ns.char.stop == 1, "#6: role and Stop stay per character")
+    ns.settings.texts.paid = "changed once"
+    check(accountDB.settings.texts.paid == "changed once", "#6: a text changed on one character is the account's text")
 end
 
 for _, line in ipairs(handlerErrors) do
