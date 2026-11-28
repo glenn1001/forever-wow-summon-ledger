@@ -13,6 +13,21 @@ local function check(cond, label)
 end
 
 local REALM = "Realm"
+-- FOREVER = true models WoW: Forever: no realms, characters have a first and last name.
+-- UnitName returns "First", "Last"; roster and whisper senders say "First Last" (issue #2).
+local FOREVER = false
+local function full(short)
+    return FOREVER and short or (short .. "-" .. REALM)
+end
+local function splitName(n)
+    if FOREVER and n then
+        local first, last = n:match("^(%S+) (.+)$")
+        if first then
+            return first, last
+        end
+    end
+    return n
+end
 
 -- Generic widget ----------------------------------------------------------------------
 local Widget = {}
@@ -125,8 +140,8 @@ local function setupGlobals()
         end,
     }
     _G.GetTime = function() return W.now end
-    _G.GetNormalizedRealmName = function() return REALM end
-    _G.GetRealmName = function() return REALM end
+    _G.GetNormalizedRealmName = function() return FOREVER and "" or REALM end
+    _G.GetRealmName = function() return FOREVER and "" or REALM end
     _G.Ambiguate = function(name)
         return (name:gsub("%-" .. REALM .. "$", ""))
     end
@@ -136,15 +151,36 @@ local function setupGlobals()
     _G.ERR_ALREADY_IN_GROUP_S = "%s is already in a group."
     _G.ERR_TRADE_COMPLETE = "Trade complete."
 
+    local function unitIndex(unit)
+        local name
+        if unit == "player" then
+            return 1
+        elseif unit == "NPC" then
+            name = W.tradePartner
+        elseif unit == "target" then
+            name = W.target
+        else
+            return tonumber(unit:match("^raid(%d+)$"))
+        end
+        for i, m in ipairs(W.members) do
+            if m.name == name then
+                return i
+            end
+        end
+    end
     _G.UnitName = function(unit)
         if unit == "player" then
-            return W.members[1].name
+            return splitName(W.members[1].name)
         elseif unit == "NPC" then
-            return W.tradePartner
+            return splitName(W.tradePartner)
         elseif unit == "target" then
-            return W.target
+            return splitName(W.target)
         end
         return nil
+    end
+    _G.UnitIsUnit = function(a, b)
+        local ia, ib = unitIndex(a), unitIndex(b)
+        return ia ~= nil and ia == ib
     end
     _G.IsInRaid = function() return W.inRaid end
     _G.IsInGroup = function() return #W.members > 1 end
@@ -196,7 +232,7 @@ local function setupGlobals()
         PromoteToAssistant = function(name)
             table.insert(W.promotes, name)
             for _, m in ipairs(W.members) do
-                if m.name == name or m.name .. "-" .. REALM == name then
+                if m.name == name or full(m.name) == name then
                     m.rank = 1
                 end
             end
@@ -262,7 +298,8 @@ local function advance(seconds)
     W.now = target
 end
 
-local function loadAddon(playerName)
+local function loadAddon(playerName, forever)
+    FOREVER = forever and true or false
     setupGlobals()
     W.members[1] = { name = playerName, subgroup = 1, level = 60, zone = "Stormwind City", online = true, rank = 0 }
     _G.SummonLedgerDB, _G.SummonLedgerCharDB = nil, nil
@@ -318,13 +355,13 @@ local function leave(short)
 end
 
 local function whisperFrom(short, text)
-    fire("CHAT_MSG_WHISPER", text, short .. "-" .. REALM)
+    fire("CHAT_MSG_WHISPER", text, full(short))
     advance(0.5)
 end
 
 local function lastWhisperTo(short)
     for i = #W.whispers, 1, -1 do
-        if W.whispers[i].to == short .. "-" .. REALM then
+        if W.whispers[i].to == full(short) then
             return W.whispers[i].text
         end
     end
@@ -650,6 +687,62 @@ do
     fire("PLAYER_ENTERING_WORLD", true, false)
     advance(6)
     check(W.whispers[1] and W.whispers[1].to == "Adv" and W.whispers[1].text == "Barrens helper reporting for duty", "automatic check-in whisper")
+end
+
+-- ===================================================================================
+-- WoW: Forever names (issue #2): first + last name, no realms
+-- ===================================================================================
+do
+    local ns = loadAddon("Adv Lord", true)
+    ns.char.role = "advertiser"
+    ns.settings.minPayment = 10000
+    SlashCmdList.SUMMONLEDGER("on")
+    check(ns.Api.playerName() == "Adv Lord", "Forever: own name is 'First Last' (got " .. tostring(ns.Api.playerName()) .. ")")
+
+    whisperFrom("Ilsirdur Bank", "summon please")
+    check(contains(W.invites, "Ilsirdur Bank"), "Forever: Customer invited by roster-style name")
+    join("Ilsirdur Bank")
+    advance(2)
+    check(W.inRaid, "Forever: converted to raid")
+    check(memberByName("Adv Lord").subgroup >= 5, "Forever: Advertiser recognises themselves as Staff (group " .. memberByName("Adv Lord").subgroup .. ")")
+    check(memberByName("Ilsirdur Bank").subgroup <= 2, "Forever: Customer waits in groups 1-2")
+
+    trade("Ilsirdur Bank", 10000)
+    advance(2)
+    check(lastWhisperTo("Ilsirdur Bank") and lastWhisperTo("Ilsirdur Bank"):find("Received 1g"), "Forever: paid whisper")
+    local g = memberByName("Ilsirdur Bank").subgroup
+    check(g == 3 or g == 4, "Forever: paying the Advertiser moves the Customer to groups 3-4 (group " .. g .. ")")
+    check(ns.db.ledger[1].from == "Ilsirdur Bank" and ns.db.ledger[1].receiver == "Adv Lord", "Forever: ledger has full names")
+end
+
+do
+    local ns = loadAddon("Lock Smith", true)
+    ns.char.role = "summoner"
+    ns.char.stop = 1
+    ns.settings.minPayment = 10000
+    W.inRaid = true
+    W.members[1].subgroup = 5
+    W.members[1].rank = 1
+    W.members[1].zone = "Westfall"
+    table.insert(W.members, { name = "Adv Lord", subgroup = 5, level = 60, zone = "Stormwind City", online = true, rank = 2 })
+    table.insert(W.members, { name = "Ilsirdur Bank", subgroup = 1, level = 20, zone = "Elwynn Forest", online = true, rank = 0 })
+    table.insert(W.members, { name = "Other Guy", subgroup = 1, level = 20, zone = "Elwynn Forest", online = true, rank = 0 })
+    SlashCmdList.SUMMONLEDGER("on")
+    fire("GROUP_ROSTER_UPDATE")
+    advance(1)
+
+    local button = _G.SummonLedgerSummonButton
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target Ilsirdur Bank\n/cast Ritual of Summoning", "Forever: summon targets 'First Last'")
+    W.target = "Ilsirdur Bank"
+    fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
+    button.scripts.PreClick(button)
+    check(button:GetAttribute("macrotext") == "/target Other Guy\n/cast Ritual of Summoning", "Forever: summoned Customer is pending, next one offered")
+
+    trade("Ilsirdur Bank", 10000)
+    advance(1)
+    local g = memberByName("Ilsirdur Bank").subgroup
+    check(g == 3 or g == 4, "Forever: paying the Westfall Summoner moves the Customer to groups 3-4 (group " .. g .. ")")
 end
 
 for _, line in ipairs(handlerErrors) do

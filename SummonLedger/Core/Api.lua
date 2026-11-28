@@ -26,9 +26,30 @@ function Api.normalize(name, realm)
     return Util.normalizeName(name, realm, Api.realm())
 end
 
+-- Name of a unit ("player", "target", "NPC" = trade partner, "raidN", ...) exactly as the raid
+-- roster writes it, so it can be compared with roster names. Never build it from UnitName's second
+-- value as a realm: in Forever that's the last name (see issue #2).
+function Api.unitName(unit)
+    if UnitIsUnit and IsInRaid() then
+        for i = 1, GetNumGroupMembers() do
+            if UnitIsUnit(unit, "raid" .. i) then
+                local name = GetRaidRosterInfo(i)
+                local full = name and Api.normalize(name)
+                if full then
+                    return full
+                end
+            end
+        end
+    end
+    local name, second = UnitName(unit)
+    if isSecret(name) or isSecret(second) then
+        return nil
+    end
+    return Util.unitFullName(name, second, Api.realm())
+end
+
 function Api.playerName()
-    local name, realm = UnitName("player")
-    return Api.normalize(name, realm)
+    return Api.unitName("player")
 end
 
 -- Short name for people on our own realm, Name-Realm otherwise.
@@ -145,8 +166,7 @@ function Api.readRoster()
         local units = { "player", "party1", "party2", "party3", "party4" }
         for i, unit in ipairs(units) do
             if UnitExists(unit) then
-                local name, realm = UnitName(unit)
-                local full = Api.normalize(name, realm)
+                local full = Api.unitName(unit)
                 if full then
                     roster[#roster + 1] = {
                         index = i,

@@ -102,6 +102,22 @@ function Util.normalizeName(name, realm, defaultRealm)
     return name .. "-" .. realm:gsub("%s", "")
 end
 
+-- Name for the two values UnitName(unit) returns. In WoW: Forever there are no realms
+-- (realm == "") and the second value is the character's last name: "First", "Last" -> "First Last",
+-- which is how the raid roster and whisper senders write it. With realms: "Name-Realm".
+function Util.unitFullName(name, second, realm)
+    if name == nil or name == "" then
+        return nil
+    end
+    if realm == nil or realm == "" then
+        if second and second ~= "" then
+            return name .. " " .. second
+        end
+        return name
+    end
+    return Util.normalizeName(name, second, realm)
+end
+
 function Util.shortName(fullName)
     if not fullName then
         return nil
