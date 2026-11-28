@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 - 2026-11-28 (beta)
+
+- Every setting is now shared by all characters on the WoW account, including the Advertiser's name. Only role and Stop are saved per character (#6).
+- An Advertiser name saved per character by 0.1.x is moved to the account settings on first load.
+
 ## 0.1.1 - 2026-11-28 (hotfix)
 
 - Fixed: Customers who paid the Minimum payment weren't moved to groups 3-4 (#2). In WoW: Forever, characters have a first and last name and there are no realms. The addon built names as `First-Last`, while the raid roster says `First Last`. It now uses the roster's form everywhere: for your own character, the trade partner and the summon target.
