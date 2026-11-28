@@ -22,6 +22,7 @@ local HELP = {
     "/sl next - invite next from the waitlist (Advertiser)",
     "/sl announce - raid warning: who to pay (Advertiser)",
     "/sl report - report for duty to the Advertiser (Summoner/Helper)",
+    "/sl role - guess this character's role and Stop again (overwrites)",
     "/sl reset-ledger - delete the whole ledger",
 }
 
@@ -45,6 +46,8 @@ SlashCmdList.SUMMONLEDGER = function(input)
         ns.Advertiser.inviteNext()
     elseif command == "announce" then
         ns.Advertiser.announcePayment()
+    elseif command == "role" then
+        ns.Role.guess(true)
     elseif command == "report" then
         ns.Summoner.reportForDuty()
     elseif command == "reset-ledger" then

@@ -35,6 +35,15 @@ title:SetText("SummonLedger")
 local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", -2, -2)
 
+local updateRoleButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+updateRoleButton:SetSize(90, 20)
+updateRoleButton:SetPoint("TOPRIGHT", -30, -8)
+updateRoleButton:SetText("Update role")
+updateRoleButton:SetScript("OnClick", function()
+    ns.Role.guess(true)
+end)
+Panel.updateRoleButton = updateRoleButton
+
 local roleText = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 roleText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 
