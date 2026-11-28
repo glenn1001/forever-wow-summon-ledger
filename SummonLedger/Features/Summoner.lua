@@ -197,7 +197,7 @@ function Summoner.reportForDuty()
         ns.print("Only Summoners and Helpers report for duty. Set the role in /sl config.")
         return
     end
-    local advertiser = Util.trim(ns.char.advertiser)
+    local advertiser = Util.trim(ns.settings.advertiser)
     if advertiser == "" then
         ns.print("Set the Advertiser's name in /sl config first.")
         return

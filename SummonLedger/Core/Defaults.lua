@@ -27,7 +27,9 @@ ns.SUMMON_PENDING_SECONDS = 120
 ns.ARRIVAL_RANGE_YARDS = 30
 
 -- Account-wide settings (SummonLedgerDB.settings). Shared by every character of this player.
+-- Everything is account-wide except a character's role and Stop (issue #6).
 ns.ACCOUNT_DEFAULTS = {
+    advertiser = "", -- the Advertiser's character name, for check-in whispers
     minLevel = 14,
     minPayment = 0, -- copper; 0 = not set yet (warned about, nobody is moved)
     inviteAnyone = false, -- false = only whispers containing a keyword
@@ -66,11 +68,10 @@ ns.ACCOUNT_DEFAULTS = {
     },
 }
 
--- Per-character settings (SummonLedgerCharDB).
+-- Per-character settings (SummonLedgerCharDB): only what differs between one player's characters.
 ns.CHARACTER_DEFAULTS = {
     role = "none",
     stop = 1,
-    advertiser = "",
 }
 
 -- Placeholders shown next to each text in the settings; `use` = who needs it ("payment" = takes payments).
