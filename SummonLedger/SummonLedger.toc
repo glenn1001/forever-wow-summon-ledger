@@ -2,7 +2,7 @@
 ## Title: SummonLedger
 ## Notes: Summoning service for the Cozy Sleeping Bag chain: auto-invites, raid groups, payments and a gold ledger.
 ## Author: Glenn Blom
-## Version: 0.1.0
+## Version: 0.1.1
 ## SavedVariables: SummonLedgerDB
 ## SavedVariablesPerCharacter: SummonLedgerCharDB
 

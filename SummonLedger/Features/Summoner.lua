@@ -134,8 +134,7 @@ local function onSummonCast(unit, _, spellID)
             return
         end
     end
-    local name, realm = UnitName("target")
-    local full = Api.normalize(name, realm)
+    local full = Api.unitName("target")
     if full then
         summoned[full] = { time = Api.now(), arrived = false }
         Summoner.update()

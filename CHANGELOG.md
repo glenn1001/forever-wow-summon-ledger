@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.1.1 - 2026-11-28 (hotfix)
+
+- Fixed: Customers who paid the Minimum payment weren't moved to groups 3-4 (#2). In WoW: Forever, characters have a first and last name and there are no realms. The addon built names as `First-Last`, while the raid roster says `First Last`. It now uses the roster's form everywhere: for your own character, the trade partner and the summon target.
+- Ledger rows from 0.1.0 still hold the old `First-Last` names.
+
 ## 0.1.0 - 2026-11-26 (beta)
 
-First playable version, not yet tested in game.
+First playable version.
 
 - Advertiser: answers requests (any whisper or keywords only), auto-invites, converts the party to a raid, keeps a Waitlist with an "Invite next" button, checks the Minimum level after joining, invites Staff who report for duty and places them in groups 5-8, promotes Summoners to assistant.
 - Raid layout: Waiting groups 1-2, Paid groups 3-4, Staff groups 5-8.
