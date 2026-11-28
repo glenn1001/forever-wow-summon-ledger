@@ -36,7 +36,7 @@ Only **Role** and **Stop** are saved per character. Every other setting is share
 3. Customers who whisper get the auto-reply and an invite (or a Waitlist spot when groups 1-2 are full). Below the Minimum level they're told and removed.
 4. The Westfall Summoner presses **Summon next**: advance payers first, then the longest-waiting Customer in groups 1-2, as long as groups 3-4 have room.
 5. On arrival in Westfall, unpaid Customers get a pay reminder and the raid gets one warning naming the Westfall Summoner. Paying the Minimum payment to the Advertiser or the Westfall Summoner moves them to groups 3-4.
-6. The next Summoners summon paid Customers standing at the previous Stop. At Thoradin's Wall the Advertiser's addon thanks and removes them.
+6. The next Summoners summon paid Customers standing at the previous Stop. When everyone has been summoned, press **Log off**: the Summoner's raid warning says this team is logging off and names the next one, then `/camp` runs. While Customers can still be summoned it's greyed out (Shift+click forces it). At Westfall it stays hidden until everyone summoned has paid. Helpers get a plain Log off button. At Thoradin's Wall the Advertiser's addon thanks and removes them.
 7. `/sl off` ends the Shift. `/sl ledger` shows totals, `/sl export` the CSV.
 
 ## Commands

@@ -34,6 +34,37 @@ function Summoner.next()
     return target, info
 end
 
+function Summoner.logoffState()
+    return Rules.logoffState(Api.readRoster(), {
+        stopIndex = ns.char.stop,
+        stops = ns.settings.stops,
+        summoned = summoned,
+        joinSeq = joinSeq,
+        now = Api.now(),
+    })
+end
+
+local function namesList(names)
+    local short = {}
+    for i, name in ipairs(names) do
+        short[i] = Api.displayName(name)
+    end
+    return table.concat(short, ", ")
+end
+Summoner.namesList = namesList
+
+-- "Everyone has been summoned to Westfall" (+ who still has to pay there).
+function Summoner.doneMessage(state)
+    local stop = ns.myStop()
+    local text = "Everyone has been summoned to " .. (stop and stop.name or "?") .. "."
+    if state.state == "unpaid" then
+        text = text .. " |cffff4040Payment is missing from: " .. namesList(state.unpaid) .. ".|r"
+    else
+        text = text .. " You can log off."
+    end
+    return text
+end
+
 function Summoner.status()
     return lastTarget, lastInfo
 end
@@ -117,7 +148,7 @@ button:SetScript("PreClick", function(self)
     local target = Summoner.next()
     if not target then
         self:SetAttribute("macrotext", "")
-        ns.print("Nobody to summon right now.")
+        ns.print(Summoner.doneMessage(Summoner.logoffState()))
         return
     end
     self:SetAttribute("macrotext", "/target " .. Api.displayName(target.name) .. "\n/cast " .. Api.summonSpellName())
@@ -153,6 +184,61 @@ C_Timer.NewTicker(2, function()
     if active() and IsInRaid() then
         Summoner.update()
     end
+end)
+
+-- Log off (#11) -------------------------------------------------------------------------
+-- Logout() is protected, so this is a secure macro button running /camp on a real click.
+-- PreClick decides whether it may: it clears the macro when the team can't log off yet.
+
+local logoff = CreateFrame("Button", "SummonLedgerLogoffButton", UIParent, "SecureActionButtonTemplate,UIPanelButtonTemplate")
+logoff:SetSize(90, 22)
+logoff:SetText("Log off")
+logoff:RegisterForClicks("AnyUp", "AnyDown")
+logoff:SetAttribute("type", "macro")
+logoff:SetAttribute("macrotext", "")
+logoff:Hide()
+Summoner.logoffButton = logoff
+
+local lastWarning = -math.huge
+
+local function sendLogoffWarning()
+    -- PreClick runs twice per key press (down + up): one raid warning per press.
+    local now = Api.now()
+    if now - lastWarning < 5 then
+        return
+    end
+    lastWarning = now
+    local stop, index = ns.myStop()
+    local stops = ns.settings.stops
+    local nextStop = stops[Rules.nextStopIndex(index, stops)]
+    local text = index == #stops and ns.settings.texts.logoffFinal or ns.settings.texts.logoff
+    Api.raidWarning(Util.fill(text, { stop = stop and stop.name or "?", ["next"] = nextStop and nextStop.name or "?" }))
+end
+
+logoff:SetScript("PreClick", function(self)
+    if InCombatLockdown() then
+        return
+    end
+    self:SetAttribute("macrotext", "")
+    local role = ns.role()
+    if role == "helper" then
+        self:SetAttribute("macrotext", "/camp")
+        return
+    end
+    if role ~= "summoner" then
+        return
+    end
+    local state = Summoner.logoffState()
+    if state.state == "unpaid" then
+        ns.print(Summoner.doneMessage(state))
+        return
+    end
+    if state.state == "busy" and not IsShiftKeyDown() then
+        ns.print(("%d Customer(s) can still be summoned here. Shift+click Log off to log off anyway."):format(state.remaining))
+        return
+    end
+    sendLogoffWarning()
+    self:SetAttribute("macrotext", "/camp")
 end)
 
 -- Summons left (Soul Shards) ---------------------------------------------------------------

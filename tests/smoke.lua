@@ -63,6 +63,8 @@ function Widget:GetPoint() return "CENTER", nil, "CENTER", 0, 0 end
 function Widget:CreateFontString() return Widget.new() end
 function Widget:RegisterEvent(e) self.events = self.events or {}; self.events[e] = true end
 function Widget:GetID() return 1 end
+function Widget:SetAlpha(a) self.alpha = a end
+function Widget:GetAlpha() return self.alpha or 1 end
 
 local eventFrames = {}
 local handlerErrors = {}
@@ -147,6 +149,7 @@ local function setupGlobals()
     end
     _G.issecretvalue = function() return false end
     _G.InCombatLockdown = function() return W.combat end
+    _G.IsShiftKeyDown = function() return W.shift == true end
     _G.ERR_DECLINE_GROUP_S = "%s declines your group invitation."
     _G.ERR_ALREADY_IN_GROUP_S = "%s is already in a group."
     _G.ERR_TRADE_COMPLETE = "Trade complete."
@@ -897,6 +900,95 @@ do
     advance(6)
     local w = W.whispers[#W.whispers]
     check(w and w.to == "Adv" and w.text == "Barrens helper reporting for duty", "#5: guessed Helper reports for duty (got " .. tostring(w and w.text) .. ")")
+end
+
+-- ===================================================================================
+-- Issue #11: Log off button
+-- ===================================================================================
+do
+    local function summonerAt(stop, customers)
+        local ns = loadAddon("Lock")
+        ns.char.role = "summoner"
+        ns.char.stop = stop
+        ns.settings.minPayment = 10000
+        W.inRaid = true
+        W.members[1].subgroup, W.members[1].rank, W.members[1].zone = 5, 1, ns.settings.stops[stop].zones:match("^[^,]+")
+        for _, c in ipairs(customers) do
+            table.insert(W.members, { name = c[1], subgroup = c[2], level = 20, zone = c[3], online = true, rank = 0 })
+        end
+        SlashCmdList.SUMMONLEDGER("on")
+        fire("GROUP_ROSTER_UPDATE")
+        advance(1)
+        return ns
+    end
+    local function press(button)
+        button.scripts.PreClick(button)
+        return button:GetAttribute("macrotext")
+    end
+    local function lastPrint()
+        return W.printed[#W.printed] or ""
+    end
+
+    -- Loch Modan: one paid Customer waiting in Stonetalon.
+    local ns = summonerAt(4, { { "Ready", 3, "Stonetalon Mountains" } })
+    local logoff = _G.SummonLedgerLogoffButton
+    ns.Panel.show()
+    check(logoff:IsShown() and logoff:GetAlpha() == 0.5, "#11: greyed out while someone can still be summoned")
+    check(press(logoff) == "" and #W.raidWarnings == 0, "#11: plain click while busy: no log off, no raid warning")
+    check(lastPrint():find("Shift%+click"), "#11: tells you to Shift+click")
+    W.shift = true
+    check(press(logoff) == "/camp", "#11: Shift+click forces the log off")
+    check(W.raidWarnings[1] == "Loch Modan team is logging off. The Thoradin's Wall team logs in any moment now: stay online and accept the next summon!", "#11: raid warning names this and the next Stop (got " .. tostring(W.raidWarnings[1]) .. ")")
+    W.shift = false
+
+    -- Summon the last one: it's pending, so everyone has been summoned.
+    local summon = _G.SummonLedgerSummonButton
+    press(summon)
+    W.target = "Ready"
+    fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
+    press(summon)
+    check(lastPrint():find("Everyone has been summoned to Loch Modan"), "#11: done message (got " .. lastPrint() .. ")")
+    ns.Panel.refresh()
+    check(logoff:IsShown() and logoff:GetAlpha() == 1, "#11: ready: not greyed out")
+    advance(10)
+    local warnings = #W.raidWarnings
+    check(press(logoff) == "/camp" and #W.raidWarnings == warnings + 1, "#11: ready: click logs off with one raid warning")
+    press(logoff)
+    check(#W.raidWarnings == warnings + 1, "#11: key down + up: still one raid warning")
+
+    -- Final Stop: the separate message, {next} = Westfall.
+    ns = summonerAt(5, {})
+    press(_G.SummonLedgerLogoffButton)
+    check(W.raidWarnings[#W.raidWarnings] == "Thoradin's Wall team is logging off: that was the last summon. Thanks for using our summoning service, and good luck with the last step!", "#11: Final Stop message")
+    ns.settings.texts.logoffFinal = "{stop} done, {next} next"
+    advance(10)
+    press(_G.SummonLedgerLogoffButton)
+    check(W.raidWarnings[#W.raidWarnings] == "Thoradin's Wall done, Westfall next", "#11: Final Stop {next} is Westfall")
+
+    -- Westfall: hidden until everyone summoned has paid.
+    ns = summonerAt(1, { { "Payer", 1, "Elwynn Forest" } })
+    logoff = _G.SummonLedgerLogoffButton
+    press(_G.SummonLedgerSummonButton)
+    W.target = "Payer"
+    fire("UNIT_SPELLCAST_SUCCEEDED", "player", "guid", 698)
+    ns.Panel.show()
+    check(not logoff:IsShown(), "#11: Westfall: hidden while a summoned Customer hasn't paid")
+    press(_G.SummonLedgerSummonButton)
+    check(lastPrint():find("Payment is missing from: Payer"), "#11: Westfall: says who hasn't paid (got " .. lastPrint() .. ")")
+    W.shift = true
+    check(press(logoff) == "", "#11: Westfall unpaid: Shift+click doesn't force it")
+    W.shift = false
+    trade("Payer", 10000)
+    advance(1)
+    ns.Panel.refresh()
+    check(logoff:IsShown(), "#11: Westfall: shown once everyone has paid")
+    check(press(logoff) == "/camp", "#11: Westfall: logs off after payment")
+
+    -- Helper: plain /camp, no raid warning.
+    ns = loadAddon("Helpy")
+    ns.char.role = "helper"
+    local before = #W.raidWarnings
+    check(press(_G.SummonLedgerLogoffButton) == "/camp" and #W.raidWarnings == before, "#11: Helper: /camp without raid warning")
 end
 
 for _, line in ipairs(handlerErrors) do
