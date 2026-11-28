@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="CLICK SummonLedgerSummonButton:LeftButton" header="SUMMONLEDGER" category="ADDONS"/>
+    <Binding name="SUMMONLEDGER_INVITE_NEXT" category="ADDONS">SummonLedger_InviteNext()</Binding>
+    <Binding name="SUMMONLEDGER_TOGGLE" category="ADDONS">SummonLedger_TogglePanel()</Binding>
+</Bindings>
