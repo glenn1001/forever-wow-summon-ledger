@@ -116,6 +116,31 @@ function Rules.parseCheckin(text, stops)
     return nil
 end
 
+-- Guess a character's role from class, level and zone (#5). The zone decides first:
+--   in a Stop zone: warlock of level 20+ = Summoner, anyone else = Helper, at that Stop;
+--   in Stormwind City / Ironforge: Advertiser;
+--   elsewhere: level 60 = Advertiser, otherwise no guess.
+-- c = { class = "WARLOCK", level = 25, zone = "Westfall" }. Returns role, stopIndex (nil, nil = no guess).
+function Rules.guessRole(c, stops)
+    local stopIndex = Rules.stopIndexOfZone(c.zone, stops)
+    if stopIndex then
+        if c.class == "WARLOCK" and (c.level or 0) >= ns.SUMMONER_MIN_LEVEL then
+            return "summoner", stopIndex
+        end
+        return "helper", stopIndex
+    end
+    local zone = tostring(c.zone or ""):lower()
+    for _, z in ipairs(ns.ADVERTISER_ZONES) do
+        if zone == z:lower() then
+            return "advertiser", nil
+        end
+    end
+    if (c.level or 0) >= ns.MAX_LEVEL then
+        return "advertiser", nil
+    end
+    return nil, nil
+end
+
 -- Payments to one receiver add up within a Shift. Payments to different Staff don't (ADR 0001).
 -- totals: name -> { copper, paid }. Returns { status = "paid"|"under"|"already"|"unset", total, remaining }.
 function Rules.applyPayment(totals, name, copper, minPayment)

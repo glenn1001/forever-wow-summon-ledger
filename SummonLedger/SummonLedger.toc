@@ -15,6 +15,7 @@ Features\Trade.lua
 Features\Ledger.lua
 Features\Advertiser.lua
 Features\Summoner.lua
+Features\Role.lua
 UI\Panel.lua
 UI\Options.lua
 UI\Export.lua

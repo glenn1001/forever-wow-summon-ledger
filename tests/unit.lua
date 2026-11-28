@@ -128,6 +128,27 @@ test("stop zones", function()
     eq(Rules.stopIndexOfZone("Stormwind City", stops), nil)
 end)
 
+-- Role guessing (#5) ------------------------------------------------------------------
+
+test("guessRole: the zone decides first", function()
+    local function guess(class, level, zone)
+        local role, stop = Rules.guessRole({ class = class, level = level, zone = zone }, stops)
+        return tostring(role) .. "@" .. tostring(stop)
+    end
+    eq(guess("WARLOCK", 25, "Westfall"), "summoner@1")
+    eq(guess("WARLOCK", 60, "Loch Modan"), "summoner@4", "level 60 warlock at a Stop is still the Summoner")
+    eq(guess("WARLOCK", 19, "The Barrens"), "helper@2", "can't cast Ritual of Summoning below 20")
+    eq(guess("MAGE", 12, "Stonetalon Mountains"), "helper@3")
+    eq(guess("PRIEST", 60, "Westfall"), "helper@1", "level 60 non-warlock at a Stop is a Helper")
+    eq(guess("WARRIOR", 30, "Hillsbrad Foothills"), "helper@5", "Thoradin's Wall has two zones")
+    eq(guess("WARRIOR", 30, "Arathi Highlands"), "helper@5")
+    eq(guess("WARLOCK", 40, "Stormwind City"), "advertiser@nil")
+    eq(guess("ROGUE", 10, "Ironforge"), "advertiser@nil")
+    eq(guess("ROGUE", 60, "Elwynn Forest"), "advertiser@nil", "level 60 elsewhere")
+    eq(guess("WARLOCK", 30, "Elwynn Forest"), "nil@nil", "no guess")
+    eq(guess("WARLOCK", 30, nil), "nil@nil", "zone unknown")
+end)
+
 -- Payments ------------------------------------------------------------------------------
 
 test("applyPayment adds up per receiver", function()

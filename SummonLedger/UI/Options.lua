@@ -328,6 +328,16 @@ page:SetScript("OnShow", function()
     Options.layout()
 end)
 
+-- The role can change outside this page (Update role button): show it and re-lay out.
+ns.on("SL_ROLE_CHANGED", function()
+    if page:IsShown() then
+        for _, refresh in ipairs(refreshers) do
+            refresh()
+        end
+    end
+    Options.layout()
+end)
+
 ns.on("SL_LOADED", function()
     build()
     if Settings and Settings.RegisterCanvasLayoutCategory then

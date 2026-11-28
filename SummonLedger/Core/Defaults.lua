@@ -11,6 +11,11 @@ ns.GROUP_SIZE = 5
 ns.ROLES = { "none", "advertiser", "summoner", "helper" }
 ns.ROLE_LABELS = { none = "Not set", advertiser = "Advertiser", summoner = "Summoner", helper = "Helper" }
 
+-- Role guessing (#5): where the Advertiser usually stands, and the levels that decide.
+ns.ADVERTISER_ZONES = { "Stormwind City", "Ironforge" }
+ns.SUMMONER_MIN_LEVEL = 20 -- Ritual of Summoning is learned at 20
+ns.MAX_LEVEL = 60
+
 -- Ritual of Summoning. Matched by ID and by (localised) name, in case Forever uses another ID.
 ns.SUMMON_SPELL_ID = 698
 ns.SUMMON_SPELL_FALLBACK_NAME = "Ritual of Summoning"
