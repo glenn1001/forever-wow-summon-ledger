@@ -72,6 +72,8 @@ StaticPopupDialogs["SUMMONLEDGER_RESET_LEDGER"] = {
 ns.on("PLAYER_LOGIN", function()
     ns.Panel.restorePosition()
     if ns.shiftOn() then
+        -- The Shift is account-wide, so every character logs in on it: open the panel (#4).
+        ns.Panel.show()
         ns.print("Your Shift is still on (" .. (ns.ROLE_LABELS[ns.role()] or "?") .. "). /sl off to end it.")
     end
     if ns.role() == "advertiser" or ns.isFirstStopSummoner() then
