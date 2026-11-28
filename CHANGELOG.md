@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 - 2026-11-28 (beta)
+
+- A character without a role gets one guessed on login and `/reload`, from its class, level and zone (#5). In a Stop's zone, a warlock of level 20+ becomes the Summoner and anyone else a Helper, at that Stop. In Stormwind City or Ironforge, or at level 60, the character becomes the Advertiser.
+- New **Update role** button on the panel (and `/sl role`): guesses again and overwrites the role and Stop. Without a possible guess, it keeps the current role.
+
 ## 0.3.0 - 2026-11-28 (beta)
 
 - The panel opens by itself when you log in or `/reload` while the Shift is on, and when you start a Shift. In combat, it opens once combat ends (#4).
