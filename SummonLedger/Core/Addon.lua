@@ -119,6 +119,9 @@ function ns.startShift()
         ns.print("No role set for this character yet: /sl config")
     end
     ns.fire("SL_SHIFT_CHANGED", true)
+    if ns.Panel then
+        ns.Panel.show()
+    end
 end
 
 function ns.stopShift()

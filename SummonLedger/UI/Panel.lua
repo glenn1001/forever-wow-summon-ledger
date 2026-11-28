@@ -195,6 +195,25 @@ function Panel.refresh()
     end
 end
 
+-- Open the panel. The Summon next button (secure) lives on it, so showing it in combat would be
+-- blocked: then it opens as soon as combat ends.
+local showAfterCombat = false
+function Panel.show()
+    if InCombatLockdown() then
+        showAfterCombat = true
+        return
+    end
+    showAfterCombat = false
+    panel:Show()
+    Panel.refresh()
+end
+
+ns.on("PLAYER_REGEN_ENABLED", function()
+    if showAfterCombat then
+        Panel.show()
+    end
+end)
+
 function Panel.toggle()
     if InCombatLockdown() then
         ns.print("Can't open or close the panel in combat.")
