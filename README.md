@@ -21,6 +21,7 @@ Changes to the files then show up in game after `/reload`. Every Staff member ne
 Only **Role** and **Stop** are saved per character. Every other setting is shared by all characters on the WoW account, so you set it once.
 
 - **Role** (per character): Advertiser, Summoner or Helper. **Stop** (per character): which Stop this Summoner/Helper character is parked at.
+  - A character without a role gets one guessed on login. In a Stop's zone, a warlock of level 20+ becomes the Summoner and anyone else a Helper, at that Stop. In Stormwind City or Ironforge, or at level 60, the character becomes the Advertiser. **Update role** on the panel (or `/sl role`) guesses again and overwrites the role.
 - **Advertiser's character name**: Summoners and Helpers whisper their check-in to this name.
 - Advertiser and Westfall Summoner: set the **Minimum payment**.
 - Advertiser: invite mode (anyone or keywords), keywords, whisper texts.
@@ -40,7 +41,7 @@ Only **Role** and **Stop** are saved per character. Every other setting is share
 
 ## Commands
 
-`/sl` panel · `/sl on|off` · `/sl config` · `/sl ledger` · `/sl export` · `/sl next` · `/sl announce` · `/sl report` · `/sl reset-ledger`
+`/sl` panel · `/sl on|off` · `/sl config` · `/sl ledger` · `/sl export` · `/sl next` · `/sl announce` · `/sl report` · `/sl role` · `/sl reset-ledger`
 
 ## Tests
 

@@ -205,7 +205,18 @@ local function setupGlobals()
     _G.UnitIsGroupAssistant = function(unit)
         return unit == "player" and W.members[1].rank == 1
     end
-    _G.UnitLevel = function() return 20 end
+    _G.UnitLevel = function(unit)
+        if unit == "player" then
+            return W.members[1].level
+        end
+        return 20
+    end
+    _G.UnitClassBase = function(unit)
+        return unit == "player" and (W.members[1].class or "WARRIOR") or "WARRIOR"
+    end
+    _G.GetZoneText = function()
+        return W.members[1].zone or ""
+    end
     _G.UnitIsConnected = function() return true end
     _G.SetRaidSubgroup = function(index, group)
         local count = 0
@@ -821,6 +832,71 @@ do
     SlashCmdList.SUMMONLEDGER("off")
     ns = loadAddon("Adv", false, accountDB, { role = "advertiser", stop = 1 })
     check(not ns.shiftOn() and not _G.SummonLedgerPanel:IsShown(), "#4: Shift ended on one character: off and closed on the others")
+end
+
+-- ===================================================================================
+-- Issue #5: guess role and Stop
+-- ===================================================================================
+do
+    local function login(name, class, level, zone, charDB)
+        local ns = loadAddon(name, false, nil, charDB)
+        W.members[1].class, W.members[1].level, W.members[1].zone = class, level, zone
+        fire("PLAYER_ENTERING_WORLD", true, false)
+        advance(2)
+        return ns
+    end
+    local function lastPrint()
+        return W.printed[#W.printed] or ""
+    end
+
+    local ns = login("Locky", "WARLOCK", 25, "Westfall")
+    check(ns.char.role == "summoner" and ns.char.stop == 1, "#5: warlock 25 in Westfall -> Summoner at Westfall")
+    check(lastPrint():find("Role: Summoner at Westfall"), "#5: the guess is printed")
+
+    ns = login("Helpy", "PRIEST", 12, "Loch Modan")
+    check(ns.char.role == "helper" and ns.char.stop == 4, "#5: level 12 in Loch Modan -> Helper at Loch Modan")
+
+    ns = login("Adv", "PALADIN", 60, "Ironforge")
+    check(ns.char.role == "advertiser", "#5: Ironforge -> Advertiser")
+
+    ns = login("Set", "WARLOCK", 30, "The Barrens", { role = "advertiser", stop = 1 })
+    check(ns.char.role == "advertiser" and ns.char.stop == 1, "#5: login never overwrites a role that's set")
+
+    ns = login("Lost", "WARLOCK", 30, "Elwynn Forest")
+    check(ns.char.role == "none", "#5: no guess: role stays empty")
+    check(lastPrint():find("Couldn't guess"), "#5: no guess: hint printed")
+    -- Moving to a Stop and pressing Update role guesses again.
+    W.members[1].zone = "Stonetalon Mountains"
+    ns.Panel.updateRoleButton:GetScript("OnClick")()
+    check(ns.char.role == "summoner" and ns.char.stop == 3, "#5: Update role after moving -> Summoner at Stonetalon")
+
+    -- Update role overwrites a role that's already set.
+    ns = login("Set", "WARLOCK", 30, "The Barrens", { role = "advertiser", stop = 1 })
+    SlashCmdList.SUMMONLEDGER("role")
+    check(ns.char.role == "summoner" and ns.char.stop == 2, "#5: Update role overwrites (Advertiser -> Summoner at Barrens)")
+    -- ... but keeps it when no guess is possible.
+    W.members[1].zone = "Elwynn Forest"
+    SlashCmdList.SUMMONLEDGER("role")
+    check(ns.char.role == "summoner" and ns.char.stop == 2, "#5: Update role without a guess keeps the role")
+
+    -- Empty zone right after login: retried until the zone is known.
+    ns = loadAddon("Slow", false)
+    W.members[1].class, W.members[1].level, W.members[1].zone = "WARLOCK", 40, ""
+    fire("PLAYER_ENTERING_WORLD", true, false)
+    advance(1.5)
+    W.members[1].zone = "Loch Modan"
+    advance(2)
+    check(ns.char.role == "summoner" and ns.char.stop == 4, "#5: zone unknown at first: guessed once it's known")
+
+    -- A guessed Helper on Shift checks in with the guessed role.
+    local accountDB = { shift = { on = true }, settings = { advertiser = "Adv" } }
+    ns = loadAddon("Newbie", false, accountDB, nil)
+    W.members = { W.members[1] }
+    W.members[1].class, W.members[1].level, W.members[1].zone = "MAGE", 10, "The Barrens"
+    fire("PLAYER_ENTERING_WORLD", true, false)
+    advance(6)
+    local w = W.whispers[#W.whispers]
+    check(w and w.to == "Adv" and w.text == "Barrens helper reporting for duty", "#5: guessed Helper reports for duty (got " .. tostring(w and w.text) .. ")")
 end
 
 for _, line in ipairs(handlerErrors) do
