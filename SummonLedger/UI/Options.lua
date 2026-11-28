@@ -217,7 +217,7 @@ local function build()
     end, function(v)
         c.role = v
     end)
-    note("noRole", "Choose a role to see its settings. Role and Stop are saved per character.", "none")
+    note("noRole", "Choose a role to see its settings. Only role and Stop are saved per character; every other setting is shared by all characters on this account.", "none")
     local stopValues = {}
     for i = 1, #s.stops do
         stopValues[i] = i
@@ -229,10 +229,10 @@ local function build()
     end, function(v)
         c.stop = v
     end)
-    textField("advertiserName", "Advertiser's character name (for check-in whispers)", 250, "staff", function()
-        return c.advertiser or ""
+    textField("advertiserName", "Advertiser's character name, all characters on this account (for check-in whispers)", 250, "staff", function()
+        return s.advertiser or ""
     end, function(v)
-        c.advertiser = Util.trim(v)
+        s.advertiser = Util.trim(v)
     end)
     textsFor("staff")
 

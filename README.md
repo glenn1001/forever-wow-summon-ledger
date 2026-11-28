@@ -14,11 +14,13 @@ mklink /J "D:\games\Battle.net\World of Warcraft\_forever_\Interface\AddOns\Summ
 
 Changes to the files then show up in game after `/reload`. Every Staff member needs the addon. Others can simply copy the folder into their `AddOns`.
 
-## Setup per character
+## Setup
 
 `/sl config` (or Esc > Options > AddOns > SummonLedger):
 
-- **Role**: Advertiser, Summoner or Helper. **Stop**: which Stop this Summoner/Helper character is parked at.
+Only **Role** and **Stop** are saved per character. Every other setting is shared by all characters on the WoW account, so you set it once.
+
+- **Role** (per character): Advertiser, Summoner or Helper. **Stop** (per character): which Stop this Summoner/Helper character is parked at.
 - **Advertiser's character name**: Summoners and Helpers whisper their check-in to this name.
 - Advertiser and Westfall Summoner: set the **Minimum payment**.
 - Advertiser: invite mode (anyone or keywords), keywords, whisper texts.
