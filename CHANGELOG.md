@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-11-28 (hotfix)
+
+- Fixed: Customers who paid the Minimum payment weren't moved to groups 3-4 (#2). In WoW: Forever, characters have a first and last name and there are no realms. The addon built names as `First-Last`, while the raid roster says `First Last`. It now uses the roster's form everywhere: for your own character, the trade partner and the summon target.
+- Ledger rows from 0.1.0 still hold the old `First-Last` names.
+
 ## 0.1.0 - 2026-11-26 (beta)
 
 First playable version.
