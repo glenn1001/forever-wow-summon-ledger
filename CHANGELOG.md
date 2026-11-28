@@ -2,7 +2,7 @@
 
 ## 0.1.0 - 2026-11-26 (beta)
 
-First playable version, not yet tested in game.
+First playable version.
 
 - Advertiser: answers requests (any whisper or keywords only), auto-invites, converts the party to a raid, keeps a Waitlist with an "Invite next" button, checks the Minimum level after joining, invites Staff who report for duty and places them in groups 5-8, promotes Summoners to assistant.
 - Raid layout: Waiting groups 1-2, Paid groups 3-4, Staff groups 5-8.
