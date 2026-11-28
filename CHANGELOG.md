@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 - 2026-11-28 (beta)
+
+- The panel opens by itself when you log in or `/reload` while the Shift is on, and when you start a Shift. In combat, it opens once combat ends (#4).
+- Fixed: the Summoner panel raised a Lua error when opened before the first roster update.
+
 ## 0.2.0 - 2026-11-28 (beta)
 
 - Every setting is now shared by all characters on the WoW account, including the Advertiser's name. Only role and Stop are saved per character (#6).
