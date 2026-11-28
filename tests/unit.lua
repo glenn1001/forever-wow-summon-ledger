@@ -354,6 +354,49 @@ test("Later Stops: only paid Customers standing at the previous Stop", function(
     eq(info.delivered, 0)
 end)
 
+-- Log off (#11) ------------------------------------------------------------------------
+
+test("logoffState: busy while Customers can be summoned, ready when only pending are left", function()
+    local roster = {
+        member(1, "Ready", 3, "Stonetalon Mountains"),
+        member(2, "Pending", 3, "Stonetalon Mountains"),
+    }
+    local c = ctx(4)
+    c.summoned["Pending-Realm"] = { time = 999, arrived = false }
+    local r = Rules.logoffState(roster, c)
+    eq(r.state, "busy")
+    eq(r.remaining, 1)
+    c.summoned["Ready-Realm"] = { time = 999, arrived = false }
+    eq(Rules.logoffState(roster, c).state, "ready", "the last one is pending: ready")
+end)
+
+test("logoffState: Westfall waits for payment from everyone summoned", function()
+    local roster = {}
+    for i = 1, 8 do
+        roster[#roster + 1] = member(i, "P" .. i, i <= 5 and 3 or 4, "Westfall")
+    end
+    roster[#roster + 1] = member(9, "Unpaid", 1, "Westfall", { distance = 200 })
+    roster[#roster + 1] = member(10, "PendingUnpaid", 2, "Elwynn Forest")
+    roster[#roster + 1] = member(11, "Waiting", 2, "Elwynn Forest")
+    local c = ctx(1)
+    for i = 1, 8 do
+        c.summoned["P" .. i .. "-Realm"] = { time = 0, arrived = true }
+    end
+    c.summoned["Unpaid-Realm"] = { time = 0, arrived = true }
+    c.summoned["PendingUnpaid-Realm"] = { time = 999, arrived = false }
+    local r = Rules.logoffState(roster, c)
+    eq(r.remaining, 0, "8 paid + 2 reserved slots: groups 3-4 are full")
+    eq(r.state, "unpaid")
+    eq(table.concat(r.unpaid, ","), "Unpaid-Realm,PendingUnpaid-Realm")
+    roster[9].subgroup, roster[10].subgroup = 4, 4
+    eq(Rules.logoffState(roster, c).state, "ready", "both paid")
+end)
+
+test("nextStopIndex wraps after the Final Stop", function()
+    eq(Rules.nextStopIndex(1, stops), 2)
+    eq(Rules.nextStopIndex(5, stops), 1)
+end)
+
 -- Messages and ledger -------------------------------------------------------------------
 
 test("splitMessage", function()

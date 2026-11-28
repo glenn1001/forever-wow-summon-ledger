@@ -7,7 +7,7 @@ local Panel = {}
 ns.Panel = Panel
 
 local panel = CreateFrame("Frame", "SummonLedgerPanel", UIParent, "BackdropTemplate")
-panel:SetSize(320, 360)
+panel:SetSize(320, 380)
 panel:SetPoint("CENTER", UIParent, "CENTER", 300, 0)
 panel:SetBackdrop({
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -91,7 +91,7 @@ end)
 reportButton:SetPoint("TOPLEFT", 10, -74)
 
 local body = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-body:SetPoint("TOPLEFT", 12, -104)
+body:SetPoint("TOPLEFT", 12, -130)
 body:SetPoint("BOTTOMRIGHT", -12, 10)
 body:SetJustifyH("LEFT")
 body:SetJustifyV("TOP")
@@ -158,6 +158,14 @@ local function summonerBody()
     if index == 1 then
         lines[#lines + 1] = ("Free Paid-group slots: %d"):format(math.max(info.paidFree, 0))
     end
+    local state = ns.Summoner.logoffState()
+    if state.state == "ready" then
+        lines[#lines + 1] = "|cff00ff00Everyone has been summoned here: you can log off.|r"
+    elseif state.state == "unpaid" then
+        lines[#lines + 1] = "|cffff4040Payment missing from: " .. ns.Summoner.namesList(state.unpaid) .. "|r"
+    else
+        lines[#lines + 1] = "|cff888888Log off: Shift+click to log off before everyone is summoned.|r"
+    end
     lines[#lines + 1] = ""
     lines[#lines + 1] = "Bind a key to \"Summon next customer\" (Key Bindings > AddOns)."
     return table.concat(lines, "\n")
@@ -182,7 +190,20 @@ function Panel.refresh()
     reportButton:SetShown(role == "summoner" or role == "helper")
 
     local summonButton = ns.Summoner.button
+    local logoffButton = ns.Summoner.logoffButton
+    local logoffState = role == "summoner" and ns.Summoner.logoffState() or nil
     if not InCombatLockdown() then
+        if role == "summoner" or role == "helper" then
+            logoffButton:SetParent(panel)
+            logoffButton:ClearAllPoints()
+            logoffButton:SetPoint("TOPLEFT", 10, -100)
+            -- Westfall: hidden while someone summoned hasn't paid. Elsewhere: greyed out while
+            -- Customers can still be summoned (it stays clickable: Shift+click forces it).
+            logoffButton:SetShown(not (logoffState and logoffState.state == "unpaid"))
+            logoffButton:SetAlpha((logoffState and logoffState.state == "busy") and 0.5 or 1)
+        else
+            logoffButton:Hide()
+        end
         if role == "summoner" then
             summonButton:SetParent(panel)
             summonButton:ClearAllPoints()

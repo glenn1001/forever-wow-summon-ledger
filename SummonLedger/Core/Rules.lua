@@ -337,6 +337,41 @@ function Rules.nextSummonTarget(roster, ctx)
     return candidates[1], info
 end
 
+-- Can this Summoning team log off at its Stop (#11)? ctx is the same as for nextSummonTarget.
+-- Returns { state, remaining, unpaid, info }:
+--   "ready"  nobody is left to summon here (pending Customers don't count),
+--   "busy"   Customers can still be summoned here (Shift+click forces the log off),
+--   "unpaid" Westfall only: everyone is summoned, but some summoned Customers (delivered or still
+--            pending) haven't paid yet, i.e. are still in groups 1-2. Names in `unpaid`.
+function Rules.logoffState(roster, ctx)
+    local _, info = Rules.nextSummonTarget(roster, ctx)
+    local result = { remaining = info.candidates, unpaid = {}, info = info }
+    if ctx.stopIndex == 1 then
+        for _, m in ipairs(roster) do
+            local entry = ctx.summoned[m.name]
+            if Rules.isWaitingGroup(m.subgroup) and entry and (entry.arrived or summonActive(entry, ctx.now)) then
+                result.unpaid[#result.unpaid + 1] = m.name
+            end
+        end
+    end
+    if result.remaining > 0 then
+        result.state = "busy"
+    elseif #result.unpaid > 0 then
+        result.state = "unpaid"
+    else
+        result.state = "ready"
+    end
+    return result
+end
+
+-- The next Stop after this one. After the Final Stop the team relogs to the First Stop.
+function Rules.nextStopIndex(stopIndex, stops)
+    if stopIndex >= #stops then
+        return 1
+    end
+    return stopIndex + 1
+end
+
 -- Splits a chat message into pieces of at most maxLen bytes, preferring spaces.
 function Rules.splitMessage(text, maxLen)
     maxLen = maxLen or 255

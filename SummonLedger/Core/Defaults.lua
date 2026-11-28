@@ -70,6 +70,8 @@ ns.ACCOUNT_DEFAULTS = {
         raidWarning = "Arrived in Westfall? Trade your payment to {summoner}!",
         thanks = "You've arrived at Thoradin's Wall. Thank you for using our summoning service, good luck with the last step!",
         checkin = "{stop} {role} reporting for duty",
+        logoff = "{stop} team is logging off. The {next} team logs in any moment now: stay online and accept the next summon!",
+        logoffFinal = "{stop} team is logging off: that was the last summon. Thanks for using our summoning service, and good luck with the last step!",
     },
 }
 
@@ -91,4 +93,6 @@ ns.TEXT_INFO = {
     { key = "raidWarning", label = "Raid warning: who to pay", vars = "{summoner}", use = "advertiser" },
     { key = "thanks", label = "Final Stop reached", vars = "", use = "advertiser" },
     { key = "checkin", label = "Staff check-in whisper", vars = "{stop} {role}", use = "staff" },
+    { key = "logoff", label = "Raid warning on Log off", vars = "{stop} {next}", use = "summoner" },
+    { key = "logoffFinal", label = "Raid warning on Log off at the Final Stop", vars = "{stop} {next}", use = "summoner" },
 }
