@@ -298,11 +298,13 @@ local function advance(seconds)
     W.now = target
 end
 
-local function loadAddon(playerName, forever)
+-- savedDB / savedCharDB: SavedVariables as if left by an earlier session (nil = first install).
+local function loadAddon(playerName, forever, savedDB, savedCharDB, inCombat)
     FOREVER = forever and true or false
     setupGlobals()
+    W.combat = inCombat and true or false
     W.members[1] = { name = playerName, subgroup = 1, level = 60, zone = "Stormwind City", online = true, rank = 0 }
-    _G.SummonLedgerDB, _G.SummonLedgerCharDB = nil, nil
+    _G.SummonLedgerDB, _G.SummonLedgerCharDB = savedDB, savedCharDB
     local ns = {}
     local toc = io.open("SummonLedger/SummonLedger.toc"):read("*a")
     for file in toc:gmatch("[^\r\n]+") do
@@ -790,6 +792,35 @@ do
     check(ns.char.role == "summoner" and ns.char.stop == 1, "#6: role and Stop stay per character")
     ns.settings.texts.paid = "changed once"
     check(accountDB.settings.texts.paid == "changed once", "#6: a text changed on one character is the account's text")
+end
+
+-- ===================================================================================
+-- Issue #4: open the panel on login while the Shift is on
+-- ===================================================================================
+do
+    local ns = loadAddon("Adv")
+    check(not _G.SummonLedgerPanel:IsShown(), "#4: Shift off: panel stays closed on login")
+    ns.char.role = "advertiser"
+    SlashCmdList.SUMMONLEDGER("on")
+    check(_G.SummonLedgerPanel:IsShown(), "#4: starting a Shift opens the panel")
+    local accountDB = SummonLedgerDB
+
+    -- Another character of the same account logs in (or /reload): still on the Shift, panel opens.
+    ns = loadAddon("Locky", false, accountDB, { role = "summoner", stop = 2 })
+    check(ns.shiftOn(), "#4: the Shift is account-wide: another character is on it too")
+    check(_G.SummonLedgerPanel:IsShown(), "#4: Shift on: panel opens on login")
+
+    -- Logging in while in combat: opens when combat ends.
+    ns = loadAddon("Helpy", false, accountDB, { role = "helper", stop = 3 }, true)
+    check(not _G.SummonLedgerPanel:IsShown(), "#4: in combat: panel waits")
+    W.combat = false
+    fire("PLAYER_REGEN_ENABLED")
+    check(_G.SummonLedgerPanel:IsShown(), "#4: panel opens after combat")
+
+    -- /sl off on any character ends it for all of them.
+    SlashCmdList.SUMMONLEDGER("off")
+    ns = loadAddon("Adv", false, accountDB, { role = "advertiser", stop = 1 })
+    check(not ns.shiftOn() and not _G.SummonLedgerPanel:IsShown(), "#4: Shift ended on one character: off and closed on the others")
 end
 
 for _, line in ipairs(handlerErrors) do

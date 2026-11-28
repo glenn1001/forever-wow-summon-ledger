@@ -11,7 +11,7 @@ ns.Summoner = Summoner
 local joinSeq = {}
 local nextSeq = 1
 local summoned = {} -- name -> { time, arrived }
-local lastInfo = { candidates = 0, paidFree = 0, atStop = 0 }
+local lastInfo = { candidates = 0, paidFree = 0, delivered = 0 }
 local lastTarget = nil
 local whispered = {} -- name -> time of the last summon whisper (a key press fires PreClick twice)
 local SUMMON_WHISPER_COOLDOWN = 30
